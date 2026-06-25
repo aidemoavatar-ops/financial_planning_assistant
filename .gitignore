@@ -42,3 +42,14 @@ logs/
 service_account*.json
 credentials.json
 token.json
+
+# Agent CLI installed skills (like node_modules — reinstall with agents-cli)
+.agents/
+
+# Local/personal tool settings
+.claude/settings.local.json
+
+# Runtime outputs
+eval-reports/
+lint-report.json
+results.tsv
