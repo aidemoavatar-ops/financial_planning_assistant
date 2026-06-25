@@ -1,0 +1,10 @@
+{
+    "name": "update_language",
+    "pythonFunction": {
+        "name": "update_language",
+        "pythonCode": "tools/update_language/python_function/python_code.py",
+        "description": "Updates the active conversation language when the user explicitly requests a language switch. Call this BEFORE generating your first response in the new language. Required per gecx-design-guide multilingual pattern for gemini-3.1-flash-live agents to prevent non-deterministic language switching. Supported languages: 'English', 'German'. Only call when the user EXPLICITLY requests a switch — not for single words, politeness markers, or ambiguous utterances. After calling this tool, continue the entire conversation in the new language."
+    },
+    "executionType": "SYNCHRONOUS",
+    "displayName": "update_language"
+}

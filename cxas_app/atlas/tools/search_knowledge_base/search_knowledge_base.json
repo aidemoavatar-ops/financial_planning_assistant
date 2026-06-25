@@ -1,0 +1,10 @@
+{
+    "name": "search_knowledge_base",
+    "pythonFunction": {
+        "name": "search_knowledge_base",
+        "pythonCode": "tools/search_knowledge_base/python_function/python_code.py",
+        "description": "Retrieves vetted Northwind financial-education content from the bilingual knowledge base (English and German). Use for conceptual and policy questions such as 'what is an emergency fund', 'what does APR mean', or 'how does compound interest work'. The KB contains native content in both English and German — query directly in the user's active_language. Returns educational content grounded in Northwind's knowledge base. Do NOT use for personalized calculations or account-specific figures — use run_planning_calculation for that."
+    },
+    "executionType": "SYNCHRONOUS",
+    "displayName": "search_knowledge_base"
+}

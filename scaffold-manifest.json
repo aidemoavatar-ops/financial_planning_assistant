@@ -1,0 +1,127 @@
+{
+  "status": "complete",
+  "summary": "All agent, tool, and callback files for the Atlas Financial Planning Assistant scaffolded in one pass. 4 agents (root_agent, planning_agent, education_agent, guardrail_agent), 7 custom tools (retrieve_account_snapshot, run_planning_calculation, search_knowledge_base, get_northwind_resource_link, generate_advisor_handoff_summary, update_language, set_session_state), 1 system tool (end_session referenced only), and 8 callbacks written. app.json customized with all 10 TDD variables, audio settings, and eval GCS bucket.",
+
+  "files_written": [
+    "cxas_app/atlas/app.json",
+
+    "cxas_app/atlas/agents/root_agent/root_agent.json",
+    "cxas_app/atlas/agents/root_agent/instruction.txt",
+    "cxas_app/atlas/agents/root_agent/before_agent_callbacks/before_agent_callbacks_01/python_code.py",
+    "cxas_app/atlas/agents/root_agent/before_model_callbacks/before_model_callbacks_01/python_code.py",
+    "cxas_app/atlas/agents/root_agent/before_model_callbacks/before_model_callbacks_02/python_code.py",
+    "cxas_app/atlas/agents/root_agent/before_model_callbacks/before_model_callbacks_03/python_code.py",
+    "cxas_app/atlas/agents/root_agent/after_model_callbacks/after_model_callbacks_01/python_code.py",
+
+    "cxas_app/atlas/agents/planning_agent/planning_agent.json",
+    "cxas_app/atlas/agents/planning_agent/instruction.txt",
+    "cxas_app/atlas/agents/planning_agent/before_model_callbacks/before_model_callbacks_01/python_code.py",
+
+    "cxas_app/atlas/agents/education_agent/education_agent.json",
+    "cxas_app/atlas/agents/education_agent/instruction.txt",
+    "cxas_app/atlas/agents/education_agent/before_model_callbacks/before_model_callbacks_01/python_code.py",
+
+    "cxas_app/atlas/agents/guardrail_agent/guardrail_agent.json",
+    "cxas_app/atlas/agents/guardrail_agent/instruction.txt",
+    "cxas_app/atlas/agents/guardrail_agent/before_model_callbacks/before_model_callbacks_01/python_code.py",
+    "cxas_app/atlas/agents/guardrail_agent/after_model_callbacks/after_model_callbacks_01/python_code.py",
+    "cxas_app/atlas/agents/guardrail_agent/after_model_callbacks/after_model_callbacks_02/python_code.py",
+
+    "cxas_app/atlas/tools/retrieve_account_snapshot/retrieve_account_snapshot.json",
+    "cxas_app/atlas/tools/retrieve_account_snapshot/python_function/python_code.py",
+
+    "cxas_app/atlas/tools/run_planning_calculation/run_planning_calculation.json",
+    "cxas_app/atlas/tools/run_planning_calculation/python_function/python_code.py",
+
+    "cxas_app/atlas/tools/search_knowledge_base/search_knowledge_base.json",
+    "cxas_app/atlas/tools/search_knowledge_base/python_function/python_code.py",
+
+    "cxas_app/atlas/tools/get_northwind_resource_link/get_northwind_resource_link.json",
+    "cxas_app/atlas/tools/get_northwind_resource_link/python_function/python_code.py",
+
+    "cxas_app/atlas/tools/generate_advisor_handoff_summary/generate_advisor_handoff_summary.json",
+    "cxas_app/atlas/tools/generate_advisor_handoff_summary/python_function/python_code.py",
+
+    "cxas_app/atlas/tools/update_language/update_language.json",
+    "cxas_app/atlas/tools/update_language/python_function/python_code.py",
+
+    "cxas_app/atlas/tools/set_session_state/set_session_state.json",
+    "cxas_app/atlas/tools/set_session_state/python_function/python_code.py"
+  ],
+
+  "files_skipped": [
+    {
+      "path": "evals/goldens/example_*.yaml",
+      "reason": "template example removed — no example evals found in project at scaffold time"
+    },
+    {
+      "path": "evals/simulations/example_*.yaml",
+      "reason": "template example removed — no example evals found in project at scaffold time"
+    },
+    {
+      "path": "cxas_app/atlas/tools/end_session/",
+      "reason": "end_session is a platform-provided system tool — no directory needed; referenced by name in agent JSON files only"
+    }
+  ],
+
+  "unresolved": [
+    {
+      "item": "bank_system_api_spec",
+      "severity": "HIGH",
+      "description": "retrieve_account_snapshot python_code.py contains a stub return value. The real bank system-of-record API endpoint, authentication method, response schema (field names, types, units), and failure modes are not yet specified. The stub returns plausible but fictional data.",
+      "file": "cxas_app/atlas/tools/retrieve_account_snapshot/python_function/python_code.py",
+      "action_needed": "Provide API spec and sandbox credentials. Replace stub with real API call."
+    },
+    {
+      "item": "advisor_routing_calendar_api_spec",
+      "severity": "HIGH",
+      "description": "generate_advisor_handoff_summary python_code.py assembles the summary but does NOT call the advisor routing/calendar system (API endpoint and auth method unknown). The warm handoff summary is generated correctly; the routing call is a TODO stub.",
+      "file": "cxas_app/atlas/tools/generate_advisor_handoff_summary/python_function/python_code.py",
+      "action_needed": "Provide advisor routing/calendar system API spec and credentials. Implement the routing call inside generate_advisor_handoff_summary."
+    },
+    {
+      "item": "search_knowledge_base_datastore",
+      "severity": "HIGH",
+      "description": "search_knowledge_base python_code.py uses a stub response instead of a real Vertex AI Data Store RAG call. The Northwind KB Data Store resource name is not yet configured.",
+      "file": "cxas_app/atlas/tools/search_knowledge_base/python_function/python_code.py",
+      "action_needed": "Configure the Northwind KB Data Store in Vertex AI. Replace stub with real Data Store query using the Vertex AI Search API."
+    },
+    {
+      "item": "northwind_urls_registry",
+      "severity": "MEDIUM",
+      "description": "get_northwind_resource_link python_code.py uses placeholder URLs (northwindbank.example.com). These must be replaced with real Northwind production URLs.",
+      "file": "cxas_app/atlas/tools/get_northwind_resource_link/python_function/python_code.py",
+      "action_needed": "Replace all placeholder URLs in NORTHWIND_URLS dict with real Northwind production URLs."
+    },
+    {
+      "item": "account_snapshot_fields_tbd",
+      "severity": "MEDIUM",
+      "description": "The account_snapshot schema (field names, types, units) in retrieve_account_snapshot is a stub based on TDD guidance. The actual bank API response schema is TBD. run_planning_calculation reads from this schema — if field names differ, calculations will fail silently.",
+      "file": "cxas_app/atlas/tools/retrieve_account_snapshot/python_function/python_code.py",
+      "action_needed": "Confirm account_snapshot field names and types against the actual bank API spec. Update retrieve_account_snapshot stub and run_planning_calculation field references accordingly."
+    },
+    {
+      "item": "identity_disclosure_legal_review",
+      "severity": "MEDIUM",
+      "description": "The deterministic greeting text in before_model_callbacks_01/python_code.py is a draft. Exact disclosure language requires legal/compliance review per tdd.md Known Issues.",
+      "file": "cxas_app/atlas/agents/root_agent/before_model_callbacks/before_model_callbacks_01/python_code.py",
+      "action_needed": "Get legal/compliance sign-off on identity disclosure wording before production launch."
+    },
+    {
+      "item": "guardrail_logger_detection_approach",
+      "severity": "LOW",
+      "description": "guardrail_logger (after_model_callbacks_02) uses keyword matching on the LLM response text to detect guardrail events. This approach noted as a reasonable default for logging purposes (execution detection, not intent detection). It may miss some refusals or produce false positives. Noted in TDD Known Issues as an open area requiring sims.",
+      "file": "cxas_app/atlas/agents/guardrail_agent/after_model_callbacks/after_model_callbacks_02/python_code.py",
+      "action_needed": "Run sim evals to validate guardrail_logger detection accuracy. Refine keyword list or switch to a state-flag approach if accuracy is insufficient."
+    },
+    {
+      "item": "set_session_state_escalation_open_question",
+      "severity": "LOW",
+      "description": "trigger_handler callbacks read _escalation_open_question from state to populate the advisor handoff summary's open_question field. This variable is not declared in app.json variableDeclarations and is not written by set_session_state tool. The open_question defaults to a generic string if the variable is absent. Consider adding _escalation_open_question to set_session_state parameters and app.json variableDeclarations for richer handoff summaries.",
+      "file": "cxas_app/atlas/tools/set_session_state/python_function/python_code.py",
+      "action_needed": "Add _escalation_open_question as a parameter to set_session_state and declare it in app.json variableDeclarations if richer advisor handoff context is required. Update instructions to tell the LLM to set this variable when triggering escalation."
+    }
+  ],
+
+  "next_step_recommendation": "Run 'cxas lint --app-dir cxas_app/atlas/' to validate JSON schema compliance and callback signatures before pushing. After lint passes, run 'cxas push' to deploy to the platform. Then run the eval suite (goldens first, then sims) starting with the auth and guardrail P0/NO-GO rows from the Coverage Map. The three highest-priority unresolved items to address before a real production launch are: (1) bank API spec for retrieve_account_snapshot, (2) advisor routing API spec for generate_advisor_handoff_summary, and (3) Northwind KB Data Store configuration for search_knowledge_base."
+}

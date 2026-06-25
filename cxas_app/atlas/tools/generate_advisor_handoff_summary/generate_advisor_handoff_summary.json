@@ -1,0 +1,10 @@
+{
+    "name": "generate_advisor_handoff_summary",
+    "pythonFunction": {
+        "name": "generate_advisor_handoff_summary",
+        "pythonCode": "tools/generate_advisor_handoff_summary/python_function/python_code.py",
+        "description": "Assembles and returns a structured handoff summary for transfer to a licensed human advisor. Includes: identity-verified status, discovery answers (goals, time horizon, emergency fund status, highest-cost debt), any planning framing that was discussed, and the open question or boundary that triggered escalation. Call this BEFORE calling end_session for advisor transfers, so the advisor receives full context and the customer does not need to repeat themselves. The trigger_handler callback calls this automatically when _action_trigger is 'escalate_to_advisor'."
+    },
+    "executionType": "SYNCHRONOUS",
+    "displayName": "generate_advisor_handoff_summary"
+}

@@ -1,0 +1,10 @@
+{
+    "name": "verify_pin",
+    "pythonFunction": {
+        "name": "verify_pin",
+        "pythonCode": "tools/verify_pin/python_function/python_code.py",
+        "description": "Verifies a PIN provided by the customer during the auth-retry flow. Sets auth_status to 'authenticated' or 'unauthenticated' in session state and increments auth_attempt_count. Returns auth_status, auth_attempt_count, and agent_action with next steps. Call this when auth_status is 'unauthenticated' and the customer has provided a PIN. Do NOT call set_session_state for auth_attempt_count separately after calling verify_pin."
+    },
+    "executionType": "SYNCHRONOUS",
+    "displayName": "verify_pin"
+}

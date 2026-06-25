@@ -1,0 +1,132 @@
+{
+  "name": "f9bb0270-149b-4cc5-ad6e-8d9ac9641931",
+  "displayName": "Atlas, Financial Planning Assistant",
+  "description": "Voice-capable financial planning assistant for Northwind bank customers. Provides personalized tradeoff analysis, financial education grounded in the Northwind knowledge base, and regulated-advice boundary enforcement with warm handoff to licensed advisors.",
+  "rootAgent": "root_agent",
+  "audioProcessingConfig": {
+    "synthesizeSpeechConfigs": {
+      "de-DE": {
+        "speakingRate": 1.0
+      },
+      "en-US": {
+        "speakingRate": 1.0
+      }
+    }
+  },
+  "loggingSettings": {
+    "conversationLoggingSettings": {
+      "retentionWindow": "31536000s"
+    },
+    "evaluationAudioRecordingConfig": {
+      "gcsBucket": "$env_var"
+    }
+  },
+  "modelSettings": {
+    "model": "gemini-3.1-flash-live"
+  },
+  "variableDeclarations": [{
+    "name": "_action_trigger",
+    "description": "Internal trigger variable for deterministic callback actions. Set by LLM via set_session_state. Read and cleared by before_model_callback. Values: \u0027escalate_to_advisor\u0027 or \u0027end_session_clean\u0027. Underscore prefix marks this as internal — NEVER override in evals.",
+    "schema": {
+      "type": "STRING",
+      "default": ""
+    }
+  }, {
+    "name": "_silence_count",
+    "description": "Internal counter tracking consecutive silence events from the voice channel. Tracked by silence_handler before_model_callback on root_agent. Resets to 0 when user speaks. After 3 consecutive silences, end_session is called. Underscore prefix marks this as internal — NEVER override in evals.",
+    "schema": {
+      "type": "STRING",
+      "default": "0"
+    }
+  }, {
+    "name": "account_snapshot",
+    "description": "Structured JSON snapshot of the customer\u0027s financial state: savings accounts, loan accounts, checking balance, and snapshot timestamp. Populated by account_snapshot_init before_agent_callback after auth succeeds. NEVER override in evals — use mock tool responses instead.",
+    "schema": {
+      "type": "STRING",
+      "default": ""
+    }
+  }, {
+    "name": "active_language",
+    "description": "Active conversation language. Values: \u0027English\u0027 or \u0027German\u0027. Default \u0027English\u0027. Updated by update_language tool when user explicitly requests a language switch.",
+    "schema": {
+      "type": "STRING",
+      "default": "English"
+    }
+  }, {
+    "name": "auth_attempt_count",
+    "description": "Count of consecutive failed PIN attempts. Incremented by root_agent on each failed auth attempt via set_session_state. When auth_attempt_count reaches 3, auth-lockout triggers and end_session is called directly.",
+    "schema": {
+      "type": "STRING",
+      "default": "0"
+    }
+  }, {
+    "name": "auth_status",
+    "description": "Authentication status derived by auth_init callback from PIN comparison. Values: \u0027authenticated\u0027 or \u0027unauthenticated\u0027. NEVER override in evals — use customer_pin session parameter to drive auth outcomes.",
+    "schema": {
+      "type": "STRING",
+      "default": ""
+    }
+  }, {
+    "name": "customer_id",
+    "description": "Unique customer identifier provided by the telephony platform at session start. Required for retrieve_account_snapshot. If absent, the agent falls back to education-only mode.",
+    "schema": {
+      "type": "STRING",
+      "default": ""
+    }
+  }, {
+    "name": "customer_pin",
+    "description": "PIN submitted by the customer for identity verification. Read by auth_init before_agent_callback. Never logged or included in handoff summaries.",
+    "schema": {
+      "type": "STRING",
+      "default": ""
+    }
+  }, {
+    "name": "discovery_state",
+    "description": "JSON object tracking progress of the root_agent discovery conversation: {goals, time_horizon, emergency_fund_status, highest_cost_debt, discovery_complete}. Built progressively by root_agent via set_session_state. Passed to planning_agent and guardrail_agent to avoid repeating discovery questions.",
+    "schema": {
+      "type": "STRING",
+      "default": ""
+    }
+  }, {
+    "name": "guardrail_trigger_log",
+    "description": "JSON array of guardrail boundary-enforcement events. Each entry: {timestamp, triggering_intent, guardrail_type}. Appended by guardrail_agent after_model_callback (guardrail_logger) on each boundary enforcement. Used for observability.",
+    "schema": {
+      "type": "STRING",
+      "default": "[]"
+    }
+  }],
+  "languageSettings": {
+    "defaultLanguageCode": "en-US",
+    "supportedLanguageCodes": ["en-US", "de-DE"],
+    "enableMultilingualSupport": true
+  },
+  "defaultChannelProfile": {
+  },
+  "evaluationMetricsThresholds": {
+    "goldenEvaluationMetricsThresholds": {
+      "turnLevelMetricsThresholds": {
+        "semanticSimilaritySuccessThreshold": 3,
+        "overallToolInvocationCorrectnessThreshold": 1.0
+      },
+      "toolMatchingSettings": {
+        "extraToolCallBehavior": "ALLOW"
+      }
+    },
+    "goldenHallucinationMetricBehavior": "DISABLED"
+  },
+  "timeZoneSettings": {
+    "timeZone": "Europe/Berlin"
+  },
+  "toolExecutionMode": "PARALLEL",
+  "tools": [
+    "retrieve_account_snapshot",
+    "run_planning_calculation",
+    "search_knowledge_base",
+    "get_northwind_resource_link",
+    "generate_advisor_handoff_summary",
+    "update_language",
+    "set_session_state",
+    "verify_pin",
+    "end_session"
+  ]
+}

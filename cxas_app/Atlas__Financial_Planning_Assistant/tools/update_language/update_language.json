@@ -1,0 +1,10 @@
+{
+  "name": "update_language",
+  "pythonFunction": {
+    "name": "update_language",
+    "pythonCode": "tools/update_language/python_function/python_code.py",
+    "description": "Update the active conversation language when the user explicitly requests a switch.\n\nCall this BEFORE generating your first response in the new language. Only call\nwhen the user has made an explicit request (e.g., \"speak German\" / \"auf Deutsch bitte\").\nDo NOT call for single words, cognates, or short ambiguous utterances.\n\nArgs:\n    new_language: The language to switch to. (REQUIRED)\n        Supported values: \u0027English\u0027, \u0027German\u0027.\n\nReturns:\n    dict with:\n        \u0027success\u0027 (bool): Whether the language was updated.\n        \u0027active_language\u0027 (str): The new active language.\n        \u0027agent_action\u0027 (str): Instruction to continue the entire conversation in new_language.\n        \u0027error\u0027 (str): On error — if unsupported language requested."
+  },
+  "executionType": "SYNCHRONOUS",
+  "displayName": "update_language"
+}

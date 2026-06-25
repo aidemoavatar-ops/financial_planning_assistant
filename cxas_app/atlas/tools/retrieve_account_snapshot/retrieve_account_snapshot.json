@@ -1,0 +1,10 @@
+{
+    "name": "retrieve_account_snapshot",
+    "pythonFunction": {
+        "name": "retrieve_account_snapshot",
+        "pythonCode": "tools/retrieve_account_snapshot/python_function/python_code.py",
+        "description": "Retrieves the customer's complete financial state from the Northwind bank system of record: checking balance, savings accounts with APY, loan accounts with balances and APRs, and recent cash-flow signals. Returns a structured JSON snapshot. Idempotent and safe to retry. ONLY call after auth_status is 'authenticated'. The result is stored in the account_snapshot session variable and used by run_planning_calculation for personalized math."
+    },
+    "executionType": "SYNCHRONOUS",
+    "displayName": "retrieve_account_snapshot"
+}

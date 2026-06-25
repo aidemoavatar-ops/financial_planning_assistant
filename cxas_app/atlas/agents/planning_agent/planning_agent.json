@@ -1,0 +1,17 @@
+{
+    "name": "planning_agent",
+    "displayName": "planning_agent",
+    "instruction": "agents/planning_agent/instruction.txt",
+    "tools": [
+        "retrieve_account_snapshot",
+        "run_planning_calculation",
+        "get_northwind_resource_link",
+        "generate_advisor_handoff_summary",
+        "update_language",
+        "set_session_state",
+        "end_session"
+    ],
+    "beforeModelCallbacks": [
+        {"pythonCode": "agents/planning_agent/before_model_callbacks/before_model_callbacks_01/python_code.py"}
+    ]
+}

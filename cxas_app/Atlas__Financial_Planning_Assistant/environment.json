@@ -1,0 +1,9 @@
+{
+  "app": {
+    "loggingSettings": {
+      "evaluationAudioRecordingConfig": {
+        "gcsBucket": "gs://atlas-financial-advisor-evals"
+      }
+    }
+  }
+}

@@ -1,0 +1,110 @@
+{
+    "name": "atlas",
+    "displayName": "Atlas, Financial Planning Assistant",
+    "description": "Voice-capable financial planning assistant for Northwind bank customers. Provides personalized tradeoff analysis, financial education grounded in the Northwind knowledge base, and regulated-advice boundary enforcement with warm handoff to licensed advisors.",
+    "rootAgent": "root_agent",
+    "modelSettings": {
+        "model": "gemini-3.1-flash-live"
+    },
+    "languageSettings": {
+        "defaultLanguageCode": "en-US",
+        "supportedLanguageCodes": ["en-US", "de-DE"],
+        "enableMultilingualSupport": true
+    },
+    "timeZoneSettings": {
+        "timeZone": "Europe/Berlin"
+    },
+    "audioProcessingConfig": {
+        "synthesizeSpeechConfigs": {
+            "en-US": {
+                "speakingRate": 1.0
+            },
+            "de-DE": {
+                "speakingRate": 1.0
+            }
+        }
+    },
+    "defaultChannelProfile": {},
+    "loggingSettings": {
+        "conversationLoggingSettings": {},
+        "evaluationAudioRecordingConfig": {
+            "gcsBucket": "gs://atlas-financial-advisor-evals"
+        }
+    },
+    "toolExecutionMode": "PARALLEL",
+    "evaluationMetricsThresholds": {
+        "goldenEvaluationMetricsThresholds": {
+            "turnLevelMetricsThresholds": {
+                "semanticSimilaritySuccessThreshold": 3,
+                "overallToolInvocationCorrectnessThreshold": 1
+            },
+            "toolMatchingSettings": {
+                "extraToolCallBehavior": "ALLOW"
+            }
+        },
+        "goldenHallucinationMetricBehavior": "DISABLED"
+    },
+    "tools": [
+        "retrieve_account_snapshot",
+        "run_planning_calculation",
+        "search_knowledge_base",
+        "get_northwind_resource_link",
+        "generate_advisor_handoff_summary",
+        "update_language",
+        "set_session_state",
+        "verify_pin",
+        "end_session"
+    ],
+    "variableDeclarations": [
+        {
+            "name": "customer_id",
+            "description": "Unique customer identifier provided by the telephony platform at session start. Required for retrieve_account_snapshot. If absent, the agent falls back to education-only mode.",
+            "schema": {"type": "STRING", "default": ""}
+        },
+        {
+            "name": "customer_pin",
+            "description": "PIN submitted by the customer for identity verification. Read by auth_init before_agent_callback. Never logged or included in handoff summaries.",
+            "schema": {"type": "STRING", "default": ""}
+        },
+        {
+            "name": "auth_status",
+            "description": "Authentication status derived by auth_init callback from PIN comparison. Values: 'authenticated' or 'unauthenticated'. NEVER override in evals — use customer_pin session parameter to drive auth outcomes.",
+            "schema": {"type": "STRING", "default": ""}
+        },
+        {
+            "name": "auth_attempt_count",
+            "description": "Count of consecutive failed PIN attempts. Incremented by root_agent on each failed auth attempt via set_session_state. When auth_attempt_count reaches 3, auth-lockout triggers and end_session is called directly.",
+            "schema": {"type": "STRING", "default": "0"}
+        },
+        {
+            "name": "active_language",
+            "description": "Active conversation language. Values: 'English' or 'German'. Default 'English'. Updated by update_language tool when user explicitly requests a language switch.",
+            "schema": {"type": "STRING", "default": "English"}
+        },
+        {
+            "name": "account_snapshot",
+            "description": "Structured JSON snapshot of the customer's financial state: savings accounts, loan accounts, checking balance, and snapshot timestamp. Populated by account_snapshot_init before_agent_callback after auth succeeds. NEVER override in evals — use mock tool responses instead.",
+            "schema": {"type": "STRING", "default": ""}
+        },
+        {
+            "name": "discovery_state",
+            "description": "JSON object tracking progress of the root_agent discovery conversation: {goals, time_horizon, emergency_fund_status, highest_cost_debt, discovery_complete}. Built progressively by root_agent via set_session_state. Passed to planning_agent and guardrail_agent to avoid repeating discovery questions.",
+            "schema": {"type": "STRING", "default": ""}
+        },
+        {
+            "name": "_action_trigger",
+            "description": "Internal trigger variable for deterministic callback actions. Set by LLM via set_session_state. Read and cleared by before_model_callback. Values: 'escalate_to_advisor' or 'end_session_clean'. Underscore prefix marks this as internal — NEVER override in evals.",
+            "schema": {"type": "STRING", "default": ""}
+        },
+        {
+            "name": "guardrail_trigger_log",
+            "description": "JSON array of guardrail boundary-enforcement events. Each entry: {timestamp, triggering_intent, guardrail_type}. Appended by guardrail_agent after_model_callback (guardrail_logger) on each boundary enforcement. Used for observability.",
+            "schema": {"type": "STRING", "default": "[]"}
+        },
+        {
+            "name": "_silence_count",
+            "description": "Internal counter tracking consecutive silence events from the voice channel. Tracked by silence_handler before_model_callback on root_agent. Resets to 0 when user speaks. After 3 consecutive silences, end_session is called. Underscore prefix marks this as internal — NEVER override in evals.",
+            "schema": {"type": "STRING", "default": "0"}
+        }
+    ]
+}

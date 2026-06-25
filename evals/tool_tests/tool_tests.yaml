@@ -1,0 +1,899 @@
+# Atlas Financial Planning Assistant — Tool Tests
+# eval_type: tool_test
+# tags: [atlas, audio, northwind]
+#
+# All response paths start with $.result. (SCRAPI nests tool responses under result).
+# Return-dict keys sourced directly from each tool's python_function/python_code.py.
+# Top-level key is `tests:` — NOT `test_cases:`.
+
+tests:
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # retrieve_account_snapshot
+  # Return keys: status, snapshot, agent_action, error
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - name: retrieve_account_snapshot_happy_path
+    tool: retrieve_account_snapshot
+    args:
+      customer_id: "CUST-001"
+    variables:
+      auth_status: "authenticated"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.snapshot"
+          operator: is_not_null
+        - path: "$.result.snapshot.customer_id"
+          operator: equals
+          value: "CUST-001"
+        - path: "$.result.snapshot.checking_balance"
+          operator: is_not_null
+        - path: "$.result.snapshot.savings_accounts"
+          operator: is_not_null
+        - path: "$.result.snapshot.loan_accounts"
+          operator: is_not_null
+        - path: "$.result.snapshot.snapshot_timestamp"
+          operator: is_not_null
+        - path: "$.result.agent_action"
+          operator: is_not_null
+
+  - name: retrieve_account_snapshot_unauthenticated
+    tool: retrieve_account_snapshot
+    args:
+      customer_id: "CUST-001"
+    variables:
+      auth_status: "unauthenticated"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "error"
+        - path: "$.result.error"
+          operator: is_not_null
+        - path: "$.result.agent_action"
+          operator: contains
+          value: "PIN"
+
+  - name: retrieve_account_snapshot_missing_customer_id
+    tool: retrieve_account_snapshot
+    args:
+      customer_id: ""
+    variables:
+      auth_status: "authenticated"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "error"
+        - path: "$.result.error"
+          operator: is_not_null
+        - path: "$.result.agent_action"
+          operator: contains
+          value: "education"
+
+  - name: retrieve_account_snapshot_no_auth_state
+    tool: retrieve_account_snapshot
+    args:
+      customer_id: "CUST-002"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "error"
+        - path: "$.result.error"
+          operator: is_not_null
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # run_planning_calculation
+  # Return keys: status, calculation_type, results, agent_action, error
+  # results sub-keys vary by calculation_type — covered per type below
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - name: run_planning_calculation_emergency_fund_gap_happy_path
+    tool: run_planning_calculation
+    args:
+      calculation_type: "emergency_fund_gap"
+      monthly_expenses: 2000.0
+      available_cash: 500.0
+    variables:
+      auth_status: "authenticated"
+      account_snapshot: '{"customer_id":"CUST-001","checking_balance":8500.0,"savings_accounts":[{"account_id":"SAV-001","balance":3000.0,"apy":0.005}],"loan_accounts":[{"account_id":"LOAN-001","balance":5200.0,"apr":0.189,"monthly_payment":185.0}],"snapshot_timestamp":"2026-06-24T00:00:00Z"}'
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.calculation_type"
+          operator: equals
+          value: "emergency_fund_gap"
+        - path: "$.result.results.current_savings_eur"
+          operator: equals
+          value: 3000.0
+        - path: "$.result.results.three_month_target_eur"
+          operator: equals
+          value: 6000.0
+        - path: "$.result.results.gap_eur"
+          operator: equals
+          value: 3000.0
+        - path: "$.result.results.monthly_expenses_eur"
+          operator: equals
+          value: 2000.0
+        - path: "$.result.results.months_to_close_gap"
+          operator: is_not_null
+        - path: "$.result.agent_action"
+          operator: contains
+          value: "side-by-side"
+
+  - name: run_planning_calculation_emergency_fund_gap_no_gap
+    tool: run_planning_calculation
+    args:
+      calculation_type: "emergency_fund_gap"
+      monthly_expenses: 1000.0
+      available_cash: 200.0
+    variables:
+      auth_status: "authenticated"
+      account_snapshot: '{"customer_id":"CUST-002","checking_balance":5000.0,"savings_accounts":[{"account_id":"SAV-001","balance":8000.0,"apy":0.02}],"loan_accounts":[],"snapshot_timestamp":"2026-06-24T00:00:00Z"}'
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.calculation_type"
+          operator: equals
+          value: "emergency_fund_gap"
+        - path: "$.result.results.gap_eur"
+          operator: equals
+          value: 0.0
+
+  - name: run_planning_calculation_debt_vs_invest_happy_path
+    tool: run_planning_calculation
+    args:
+      calculation_type: "debt_vs_invest"
+      investment_yield: 0.07
+    variables:
+      auth_status: "authenticated"
+      account_snapshot: '{"customer_id":"CUST-001","checking_balance":8500.0,"savings_accounts":[{"account_id":"SAV-001","balance":12000.0,"apy":0.005}],"loan_accounts":[{"account_id":"LOAN-001","balance":5200.0,"apr":0.189,"monthly_payment":185.0}],"snapshot_timestamp":"2026-06-24T00:00:00Z"}'
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.calculation_type"
+          operator: equals
+          value: "debt_vs_invest"
+        - path: "$.result.results.highest_apr_loan_id"
+          operator: equals
+          value: "LOAN-001"
+        - path: "$.result.results.loan_apr"
+          operator: equals
+          value: 0.189
+        - path: "$.result.results.loan_balance_eur"
+          operator: equals
+          value: 5200.0
+        - path: "$.result.results.investment_yield"
+          operator: equals
+          value: 0.07
+        - path: "$.result.results.guaranteed_return_from_payoff"
+          operator: equals
+          value: 0.189
+        - path: "$.result.results.apr_vs_yield_delta"
+          operator: is_not_null
+        - path: "$.result.agent_action"
+          operator: contains
+          value: "side-by-side"
+
+  - name: run_planning_calculation_debt_vs_invest_no_loans
+    tool: run_planning_calculation
+    args:
+      calculation_type: "debt_vs_invest"
+      investment_yield: 0.05
+    variables:
+      auth_status: "authenticated"
+      account_snapshot: '{"customer_id":"CUST-002","checking_balance":5000.0,"savings_accounts":[{"account_id":"SAV-001","balance":8000.0,"apy":0.02}],"loan_accounts":[],"snapshot_timestamp":"2026-06-24T00:00:00Z"}'
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "error"
+        - path: "$.result.error"
+          operator: contains
+          value: "No loan accounts"
+        - path: "$.result.agent_action"
+          operator: is_not_null
+
+  - name: run_planning_calculation_payoff_timeline_happy_path
+    tool: run_planning_calculation
+    args:
+      calculation_type: "payoff_timeline"
+    variables:
+      auth_status: "authenticated"
+      account_snapshot: '{"customer_id":"CUST-001","checking_balance":8500.0,"savings_accounts":[{"account_id":"SAV-001","balance":12000.0,"apy":0.005}],"loan_accounts":[{"account_id":"LOAN-001","balance":5200.0,"apr":0.189,"monthly_payment":185.0}],"snapshot_timestamp":"2026-06-24T00:00:00Z"}'
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.calculation_type"
+          operator: equals
+          value: "payoff_timeline"
+        - path: "$.result.results.loan_id"
+          operator: equals
+          value: "LOAN-001"
+        - path: "$.result.results.balance_eur"
+          operator: equals
+          value: 5200.0
+        - path: "$.result.results.apr"
+          operator: equals
+          value: 0.189
+        - path: "$.result.results.monthly_payment_eur"
+          operator: equals
+          value: 185.0
+        - path: "$.result.results.payoff_months"
+          operator: is_not_null
+        - path: "$.result.agent_action"
+          operator: is_not_null
+
+  - name: run_planning_calculation_payoff_timeline_no_loans
+    tool: run_planning_calculation
+    args:
+      calculation_type: "payoff_timeline"
+    variables:
+      auth_status: "authenticated"
+      account_snapshot: '{"customer_id":"CUST-003","checking_balance":3000.0,"savings_accounts":[],"loan_accounts":[],"snapshot_timestamp":"2026-06-24T00:00:00Z"}'
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "error"
+        - path: "$.result.error"
+          operator: contains
+          value: "No loan accounts"
+
+  - name: run_planning_calculation_allocation_split_high_apr_loan
+    tool: run_planning_calculation
+    args:
+      calculation_type: "allocation_split"
+      available_cash: 1000.0
+      monthly_expenses: 2000.0
+    variables:
+      auth_status: "authenticated"
+      account_snapshot: '{"customer_id":"CUST-001","checking_balance":8500.0,"savings_accounts":[{"account_id":"SAV-001","balance":12000.0,"apy":0.005}],"loan_accounts":[{"account_id":"LOAN-001","balance":5200.0,"apr":0.189,"monthly_payment":185.0}],"snapshot_timestamp":"2026-06-24T00:00:00Z"}'
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.calculation_type"
+          operator: equals
+          value: "allocation_split"
+        - path: "$.result.results.available_cash_eur"
+          operator: equals
+          value: 1000.0
+        - path: "$.result.results.proposed_debt_payment_eur"
+          operator: equals
+          value: 700.0
+        - path: "$.result.results.proposed_savings_eur"
+          operator: equals
+          value: 300.0
+        - path: "$.result.results.debt_percentage"
+          operator: equals
+          value: 0.7
+        - path: "$.result.results.savings_percentage"
+          operator: equals
+          value: 0.3
+        - path: "$.result.agent_action"
+          operator: contains
+          value: "allocation"
+
+  - name: run_planning_calculation_allocation_split_no_loan
+    tool: run_planning_calculation
+    args:
+      calculation_type: "allocation_split"
+      available_cash: 500.0
+      monthly_expenses: 1500.0
+    variables:
+      auth_status: "authenticated"
+      account_snapshot: '{"customer_id":"CUST-002","checking_balance":5000.0,"savings_accounts":[{"account_id":"SAV-001","balance":8000.0,"apy":0.04}],"loan_accounts":[],"snapshot_timestamp":"2026-06-24T00:00:00Z"}'
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.results.debt_percentage"
+          operator: equals
+          value: 0.3
+        - path: "$.result.results.savings_percentage"
+          operator: equals
+          value: 0.7
+
+  - name: run_planning_calculation_unknown_type
+    tool: run_planning_calculation
+    args:
+      calculation_type: "invalid_type"
+    variables:
+      auth_status: "authenticated"
+      account_snapshot: '{"customer_id":"CUST-001","checking_balance":8500.0,"savings_accounts":[],"loan_accounts":[],"snapshot_timestamp":"2026-06-24T00:00:00Z"}'
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "error"
+        - path: "$.result.error"
+          operator: contains
+          value: "Unknown calculation_type"
+        - path: "$.result.agent_action"
+          operator: is_not_null
+
+  - name: run_planning_calculation_unauthenticated
+    tool: run_planning_calculation
+    args:
+      calculation_type: "emergency_fund_gap"
+      monthly_expenses: 2000.0
+    variables:
+      auth_status: "unauthenticated"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "error"
+        - path: "$.result.error"
+          operator: is_not_null
+        - path: "$.result.agent_action"
+          operator: contains
+          value: "personalized calculations"
+
+  - name: run_planning_calculation_missing_account_snapshot
+    tool: run_planning_calculation
+    args:
+      calculation_type: "payoff_timeline"
+    variables:
+      auth_status: "authenticated"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "error"
+        - path: "$.result.error"
+          operator: contains
+          value: "account_snapshot"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # search_knowledge_base
+  # Return keys: status, result, source, agent_action, error
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - name: search_knowledge_base_english_happy_path
+    tool: search_knowledge_base
+    args:
+      user_query: "What is an emergency fund?"
+      language: "English"
+    variables:
+      active_language: "English"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.result"
+          operator: is_not_null
+        - path: "$.result.source"
+          operator: is_not_null
+        - path: "$.result.agent_action"
+          operator: contains
+          value: "Northwind knowledge base"
+
+  - name: search_knowledge_base_german_happy_path
+    tool: search_knowledge_base
+    args:
+      user_query: "Was ist ein Notfallfonds?"
+      language: "German"
+    variables:
+      active_language: "German"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.result"
+          operator: is_not_null
+        - path: "$.result.source"
+          operator: contains
+          value: "Northwind"
+        - path: "$.result.agent_action"
+          operator: is_not_null
+
+  - name: search_knowledge_base_german_language_returns_german_content
+    tool: search_knowledge_base
+    args:
+      user_query: "Was ist ein Notfallfonds?"
+      language: "German"
+    variables:
+      active_language: "German"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.result"
+          operator: contains
+          value: "Notfallfonds"
+        - path: "$.result.source"
+          operator: contains
+          value: "Wissensbank"
+
+  - name: search_knowledge_base_missing_query
+    tool: search_knowledge_base
+    args:
+      user_query: ""
+      language: "English"
+    variables:
+      active_language: "English"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "error"
+        - path: "$.result.error"
+          operator: contains
+          value: "user_query is required"
+        - path: "$.result.agent_action"
+          operator: is_not_null
+
+  - name: search_knowledge_base_english_content_cites_northwind
+    tool: search_knowledge_base
+    args:
+      user_query: "How does compound interest work?"
+      language: "English"
+    variables:
+      active_language: "English"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.result"
+          operator: contains
+          value: "Northwind"
+        - path: "$.result.agent_action"
+          operator: contains
+          value: "personal account figures"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # get_northwind_resource_link
+  # Return keys: status, topic, url, agent_action, error
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - name: get_northwind_resource_link_savings_rates
+    tool: get_northwind_resource_link
+    args:
+      topic: "savings_rates"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.topic"
+          operator: equals
+          value: "savings_rates"
+        - path: "$.result.url"
+          operator: contains
+          value: "northwindbank"
+        - path: "$.result.agent_action"
+          operator: contains
+          value: "Do NOT quote specific rates"
+
+  - name: get_northwind_resource_link_advisor_scheduling
+    tool: get_northwind_resource_link
+    args:
+      topic: "advisor_scheduling"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.topic"
+          operator: equals
+          value: "advisor_scheduling"
+        - path: "$.result.url"
+          operator: contains
+          value: "schedule"
+        - path: "$.result.agent_action"
+          operator: is_not_null
+
+  - name: get_northwind_resource_link_loan_rates
+    tool: get_northwind_resource_link
+    args:
+      topic: "loan_rates"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.topic"
+          operator: equals
+          value: "loan_rates"
+        - path: "$.result.url"
+          operator: contains
+          value: "northwindbank"
+
+  - name: get_northwind_resource_link_rate_disclosures
+    tool: get_northwind_resource_link
+    args:
+      topic: "rate_disclosures"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.topic"
+          operator: equals
+          value: "rate_disclosures"
+        - path: "$.result.url"
+          operator: contains
+          value: "disclosures"
+
+  - name: get_northwind_resource_link_product_overview
+    tool: get_northwind_resource_link
+    args:
+      topic: "product_overview"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.url"
+          operator: contains
+          value: "products"
+
+  - name: get_northwind_resource_link_unknown_topic
+    tool: get_northwind_resource_link
+    args:
+      topic: "crypto_advice"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "error"
+        - path: "$.result.error"
+          operator: contains
+          value: "Unknown topic"
+        - path: "$.result.agent_action"
+          operator: is_not_null
+
+  - name: get_northwind_resource_link_empty_topic
+    tool: get_northwind_resource_link
+    args:
+      topic: ""
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "error"
+        - path: "$.result.error"
+          operator: contains
+          value: "topic is required"
+        - path: "$.result.agent_action"
+          operator: is_not_null
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # generate_advisor_handoff_summary
+  # Return keys: status, summary, agent_action, error
+  # summary sub-keys: identity_verified, customer_id, discovery_answers,
+  #                   open_question, active_language
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - name: generate_advisor_handoff_summary_happy_path_with_discovery
+    tool: generate_advisor_handoff_summary
+    args:
+      open_question: "Customer asked which specific fund to invest their EUR 8,500 surplus in."
+    variables:
+      auth_status: "authenticated"
+      customer_id: "CUST-001"
+      active_language: "English"
+      discovery_state: '{"goals":"Build an emergency fund and pay off credit card debt","time_horizon":"3-5 years","emergency_fund_status":"Underfunded — only 1.5 months saved","highest_cost_debt":"Credit card at 18.9% APR","discovery_complete":true}'
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.summary.identity_verified"
+          operator: equals
+          value: true
+        - path: "$.result.summary.customer_id"
+          operator: equals
+          value: "CUST-001"
+        - path: "$.result.summary.open_question"
+          operator: contains
+          value: "fund"
+        - path: "$.result.summary.active_language"
+          operator: equals
+          value: "English"
+        - path: "$.result.summary.discovery_answers.goals"
+          operator: is_not_null
+        - path: "$.result.summary.discovery_answers.time_horizon"
+          operator: is_not_null
+        - path: "$.result.summary.discovery_answers.discovery_complete"
+          operator: equals
+          value: true
+        - path: "$.result.agent_action"
+          operator: contains
+          value: "farewell"
+
+  - name: generate_advisor_handoff_summary_unauthenticated_customer
+    tool: generate_advisor_handoff_summary
+    args:
+      open_question: "Customer wants a personalized suitability assessment."
+    variables:
+      auth_status: "unauthenticated"
+      customer_id: ""
+      active_language: "English"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.summary.identity_verified"
+          operator: equals
+          value: false
+        - path: "$.result.summary.customer_id"
+          operator: equals
+          value: ""
+
+  - name: generate_advisor_handoff_summary_german_session
+    tool: generate_advisor_handoff_summary
+    args:
+      open_question: "Kunde fragt nach einer persönlichen Fondsempfehlung."
+    variables:
+      auth_status: "authenticated"
+      customer_id: "CUST-005"
+      active_language: "German"
+      discovery_state: '{"goals":"Notfallfonds aufbauen","time_horizon":"2-3 Jahre","emergency_fund_status":"Nicht vorhanden","highest_cost_debt":"Kreditkarte bei 19% APR","discovery_complete":false}'
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.summary.active_language"
+          operator: equals
+          value: "German"
+        - path: "$.result.summary.discovery_answers.goals"
+          operator: is_not_null
+
+  - name: generate_advisor_handoff_summary_no_discovery_state
+    tool: generate_advisor_handoff_summary
+    args:
+      open_question: "Customer requested a licensed advisor immediately."
+    variables:
+      auth_status: "authenticated"
+      customer_id: "CUST-003"
+      active_language: "English"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.summary.discovery_answers.goals"
+          operator: equals
+          value: "Not collected"
+        - path: "$.result.summary.discovery_answers.time_horizon"
+          operator: equals
+          value: "Not collected"
+        - path: "$.result.summary.discovery_answers.emergency_fund_status"
+          operator: equals
+          value: "Not collected"
+        - path: "$.result.summary.discovery_answers.highest_cost_debt"
+          operator: equals
+          value: "Not collected"
+
+  - name: generate_advisor_handoff_summary_missing_open_question
+    tool: generate_advisor_handoff_summary
+    args:
+      open_question: ""
+    variables:
+      auth_status: "authenticated"
+      customer_id: "CUST-001"
+      active_language: "English"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "error"
+        - path: "$.result.error"
+          operator: contains
+          value: "open_question is required"
+        - path: "$.result.agent_action"
+          operator: is_not_null
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # update_language
+  # Return keys: success, active_language, agent_action, error
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - name: update_language_switch_to_german
+    tool: update_language
+    args:
+      new_language: "German"
+    variables:
+      active_language: "English"
+    expectations:
+      response:
+        - path: "$.result.success"
+          operator: equals
+          value: true
+        - path: "$.result.active_language"
+          operator: equals
+          value: "German"
+        - path: "$.result.agent_action"
+          operator: contains
+          value: "German"
+
+  - name: update_language_switch_to_english
+    tool: update_language
+    args:
+      new_language: "English"
+    variables:
+      active_language: "German"
+    expectations:
+      response:
+        - path: "$.result.success"
+          operator: equals
+          value: true
+        - path: "$.result.active_language"
+          operator: equals
+          value: "English"
+        - path: "$.result.agent_action"
+          operator: contains
+          value: "English"
+
+  - name: update_language_unsupported_language
+    tool: update_language
+    args:
+      new_language: "French"
+    variables:
+      active_language: "English"
+    expectations:
+      response:
+        - path: "$.result.success"
+          operator: equals
+          value: false
+        - path: "$.result.error"
+          operator: contains
+          value: "Unsupported language"
+        - path: "$.result.agent_action"
+          operator: contains
+          value: "English and German"
+
+  - name: update_language_empty_new_language
+    tool: update_language
+    args:
+      new_language: ""
+    variables:
+      active_language: "English"
+    expectations:
+      response:
+        - path: "$.result.success"
+          operator: equals
+          value: false
+        - path: "$.result.error"
+          operator: contains
+          value: "new_language is required"
+        - path: "$.result.agent_action"
+          operator: is_not_null
+
+  - name: update_language_same_language_no_op
+    tool: update_language
+    args:
+      new_language: "English"
+    variables:
+      active_language: "English"
+    expectations:
+      response:
+        - path: "$.result.success"
+          operator: equals
+          value: true
+        - path: "$.result.active_language"
+          operator: equals
+          value: "English"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # set_session_state
+  # Return keys: status, updated_variables, agent_action
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  - name: set_session_state_action_trigger_escalate
+    tool: set_session_state
+    args:
+      _action_trigger: "escalate_to_advisor"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.updated_variables._action_trigger"
+          operator: equals
+          value: "escalate_to_advisor"
+        - path: "$.result.agent_action"
+          operator: is_not_null
+
+  - name: set_session_state_action_trigger_end_session_clean
+    tool: set_session_state
+    args:
+      _action_trigger: "end_session_clean"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.updated_variables._action_trigger"
+          operator: equals
+          value: "end_session_clean"
+
+  - name: set_session_state_auth_attempt_count
+    tool: set_session_state
+    args:
+      auth_attempt_count: "2"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.updated_variables.auth_attempt_count"
+          operator: equals
+          value: "2"
+
+  - name: set_session_state_discovery_state
+    tool: set_session_state
+    args:
+      discovery_state: '{"goals":"Retire early","time_horizon":"10 years","emergency_fund_status":"3 months saved","highest_cost_debt":"No debt","discovery_complete":false}'
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.updated_variables.discovery_state"
+          operator: is_not_null
+
+  - name: set_session_state_active_language
+    tool: set_session_state
+    args:
+      active_language: "German"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.updated_variables.active_language"
+          operator: equals
+          value: "German"
+
+  - name: set_session_state_multiple_variables
+    tool: set_session_state
+    args:
+      _action_trigger: "escalate_to_advisor"
+      auth_attempt_count: "1"
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "success"
+        - path: "$.result.updated_variables._action_trigger"
+          operator: equals
+          value: "escalate_to_advisor"
+        - path: "$.result.updated_variables.auth_attempt_count"
+          operator: equals
+          value: "1"
+
+  - name: set_session_state_no_variables_provided
+    tool: set_session_state
+    args: {}
+    expectations:
+      response:
+        - path: "$.result.status"
+          operator: equals
+          value: "error"
+        - path: "$.result.agent_action"
+          operator: contains
+          value: "At least one parameter"

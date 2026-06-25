@@ -1,0 +1,10 @@
+{
+  "name": "generate_advisor_handoff_summary",
+  "pythonFunction": {
+    "name": "generate_advisor_handoff_summary",
+    "pythonCode": "tools/generate_advisor_handoff_summary/python_function/python_code.py",
+    "description": "Assemble a structured handoff summary for the receiving licensed advisor.\n\nReads discovery_state and account context from session state. The advisor\nreceives this summary so the customer does not need to repeat themselves.\ncustomer_pin is never included.\n\nArgs:\n    open_question: The specific question, request, or regulated-advice boundary\n        that triggered the escalation to a licensed advisor. Be specific — this\n        is what the advisor needs to address first. Example: \"Customer asked which\n        specific fund to invest their EUR 8,500 surplus in.\" (REQUIRED)\n\nReturns:\n    dict with:\n        \u0027status\u0027 (str): \u0027success\u0027 or \u0027error\u0027.\n        \u0027summary\u0027 (dict): Structured handoff context for the advisor:\n            \u0027identity_verified\u0027 (bool): Whether auth_status is \u0027authenticated\u0027,\n            \u0027customer_id\u0027 (str): Customer identifier (not the PIN),\n            \u0027discovery_answers\u0027 (dict): Goals, time horizon, safety net, highest-cost debt,\n            \u0027open_question\u0027 (str): The specific question or boundary that triggered escalation,\n            \u0027active_language\u0027 (str): Language the customer was using.\n        \u0027agent_action\u0027 (str): Instruction confirming the summary is ready.\n        \u0027error\u0027 (str): On error."
+  },
+  "executionType": "SYNCHRONOUS",
+  "displayName": "generate_advisor_handoff_summary"
+}

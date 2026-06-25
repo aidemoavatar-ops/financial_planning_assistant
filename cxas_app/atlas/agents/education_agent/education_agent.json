@@ -1,0 +1,15 @@
+{
+    "name": "education_agent",
+    "displayName": "education_agent",
+    "instruction": "agents/education_agent/instruction.txt",
+    "tools": [
+        "search_knowledge_base",
+        "get_northwind_resource_link",
+        "update_language",
+        "set_session_state",
+        "end_session"
+    ],
+    "beforeModelCallbacks": [
+        {"pythonCode": "agents/education_agent/before_model_callbacks/before_model_callbacks_01/python_code.py"}
+    ]
+}

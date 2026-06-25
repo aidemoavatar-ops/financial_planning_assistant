@@ -1,0 +1,10 @@
+{
+    "name": "get_northwind_resource_link",
+    "pythonFunction": {
+        "name": "get_northwind_resource_link",
+        "pythonCode": "tools/get_northwind_resource_link/python_function/python_code.py",
+        "description": "Returns official Northwind URLs for a given topic — product pages, rate disclosures, or advisor scheduling flow. Use when the customer asks where to find official rates, product details, or how to book an appointment. This tool points to the official source of record. Do NOT quote rates or terms inline from this tool — always direct the customer to the official URL returned. Topics: 'savings_rates', 'loan_rates', 'advisor_scheduling', 'product_overview', 'rate_disclosures'."
+    },
+    "executionType": "SYNCHRONOUS",
+    "displayName": "get_northwind_resource_link"
+}

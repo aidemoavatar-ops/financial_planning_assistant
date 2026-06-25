@@ -1,0 +1,10 @@
+{
+  "name": "retrieve_account_snapshot",
+  "pythonFunction": {
+    "name": "retrieve_account_snapshot",
+    "pythonCode": "tools/retrieve_account_snapshot/python_function/python_code.py",
+    "description": "Retrieve the customer\u0027s complete financial state from the bank system of record.\n\nIdempotent and safe to retry. Must only be called when auth_status is \u0027authenticated\u0027.\nThe returned snapshot is used as input to run_planning_calculation.\n\nArgs:\n    customer_id: The unique customer identifier from session state. (REQUIRED)\n        Use the customer_id session variable value.\n\nReturns:\n    dict with:\n        \u0027status\u0027 (str): \u0027success\u0027 or \u0027error\u0027.\n        \u0027snapshot\u0027 (dict): On success — customer financial state with keys:\n            \u0027customer_id\u0027 (str),\n            \u0027checking_balance\u0027 (float): current checking account balance in EUR,\n            \u0027savings_accounts\u0027 (list[dict]): each with \u0027account_id\u0027, \u0027balance\u0027, \u0027apy\u0027,\n            \u0027loan_accounts\u0027 (list[dict]): each with \u0027account_id\u0027, \u0027balance\u0027, \u0027apr\u0027, \u0027monthly_payment\u0027,\n            \u0027snapshot_timestamp\u0027 (str): ISO 8601 timestamp of data retrieval.\n        \u0027agent_action\u0027 (str): Instruction for how the agent should proceed.\n        \u0027error\u0027 (str): On error — description of what failed."
+  },
+  "executionType": "SYNCHRONOUS",
+  "displayName": "retrieve_account_snapshot"
+}

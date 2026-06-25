@@ -1,0 +1,10 @@
+{
+  "name": "set_session_state",
+  "pythonFunction": {
+    "name": "set_session_state",
+    "pythonCode": "tools/set_session_state/python_function/python_code.py",
+    "description": "Write session state variables. Used for the trigger pattern and state updates.\n\nArgs:\n    _action_trigger: Action for before_model_callback to execute deterministically.\n        Values: \u0027escalate_to_advisor\u0027 (warm handoff to licensed advisor) or\n        \u0027end_session_clean\u0027 (close session gracefully). Read and cleared by\n        before_model_callback. (REQUIRED when triggering an action)\n    auth_attempt_count: Number of consecutive failed PIN attempts (as string integer).\n        Set by root_agent on each failed auth attempt. When value reaches \u00273\u0027,\n        auth-lockout flow triggers. (REQUIRED when updating auth retry count)\n    discovery_state: JSON string representing discovery conversation progress.\n        Schema: {\"goals\": str, \"time_horizon\": str, \"emergency_fund_status\": str,\n        \"highest_cost_debt\": str, \"discovery_complete\": bool}.\n        Update incrementally as root_agent collects each answer. (REQUIRED when\n        updating discovery progress)\n    active_language: Language for the conversation. Values: \u0027English\u0027 or \u0027German\u0027.\n        Prefer using update_language tool for language switches. (REQUIRED when\n        updating language via this tool)\n\nReturns:\n    dict with \u0027status\u0027 (str) and \u0027updated_variables\u0027 (dict) listing what was set,\n    or \u0027agent_action\u0027 (str) with instructions if no variables were provided."
+  },
+  "executionType": "SYNCHRONOUS",
+  "displayName": "set_session_state"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "get_northwind_resource_link",
+  "pythonFunction": {
+    "name": "get_northwind_resource_link",
+    "pythonCode": "tools/get_northwind_resource_link/python_function/python_code.py",
+    "description": "Return the official Northwind URL for the requested topic.\n\nDo NOT quote rates or terms inline — direct the customer to the official URL.\nThe URL is the authoritative source of record for current rates and product terms.\n\nArgs:\n    topic: The resource topic to look up. (REQUIRED) One of:\n        \u0027savings_rates\u0027 — current savings account APY rates,\n        \u0027loan_rates\u0027 — current loan APR rates,\n        \u0027advisor_scheduling\u0027 — book an appointment with a licensed advisor,\n        \u0027product_overview\u0027 — overview of Northwind financial products,\n        \u0027rate_disclosures\u0027 — official legal rate disclosure documents.\n\nReturns:\n    dict with:\n        \u0027status\u0027 (str): \u0027success\u0027 or \u0027error\u0027.\n        \u0027topic\u0027 (str): The requested topic.\n        \u0027url\u0027 (str): On success — the official Northwind URL.\n        \u0027agent_action\u0027 (str): Instruction for how to present the URL to the customer.\n        \u0027error\u0027 (str): On error — description of what failed."
+  },
+  "executionType": "SYNCHRONOUS",
+  "displayName": "get_northwind_resource_link"
+}

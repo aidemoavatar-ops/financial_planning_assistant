@@ -1,0 +1,11 @@
+{
+  "gcp_project_id": "financial-advisor-500419",
+  "location": "eu",
+  "app_name": "atlas",
+  "deployed_app_id": "f9bb0270-149b-4cc5-ad6e-8d9ac9641931",
+  "app_dir": "cxas_app/atlas/",
+  "model": "gemini-3.1-flash-live",
+  "modality": "audio",
+  "default_channel": "audio",
+  "gcs_bucket": "gs://atlas-financial-advisor-evals"
+}

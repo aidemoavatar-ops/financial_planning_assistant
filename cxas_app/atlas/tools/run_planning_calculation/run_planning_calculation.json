@@ -1,0 +1,10 @@
+{
+    "name": "run_planning_calculation",
+    "pythonFunction": {
+        "name": "run_planning_calculation",
+        "pythonCode": "tools/run_planning_calculation/python_function/python_code.py",
+        "description": "Runs deterministic financial planning calculations using the customer's real account figures from account_snapshot. Supports: emergency_fund_gap (target vs current), debt_vs_invest (guaranteed return of debt payoff vs investment yield comparison), payoff_timeline (months to pay off a loan at current payment), and allocation_split (proposed savings/debt allocation). Returns both numeric results and an explicit agent_action instruction for how to present them as a side-by-side comparison — the agent must never invent numbers or framing. Only call after account_snapshot is populated."
+    },
+    "executionType": "SYNCHRONOUS",
+    "displayName": "run_planning_calculation"
+}

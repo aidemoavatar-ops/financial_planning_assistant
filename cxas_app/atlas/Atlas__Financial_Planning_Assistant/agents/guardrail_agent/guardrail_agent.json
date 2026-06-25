@@ -1,0 +1,14 @@
+{
+  "name": "guardrail_agent",
+  "displayName": "guardrail_agent",
+  "instruction": "agents/guardrail_agent/instruction.txt",
+  "tools": ["end_session", "generate_advisor_handoff_summary", "set_session_state", "update_language"],
+  "beforeModelCallbacks": [{
+    "pythonCode": "agents/guardrail_agent/before_model_callbacks/before_model_callbacks_01/python_code.py"
+  }],
+  "afterModelCallbacks": [{
+    "pythonCode": "agents/guardrail_agent/after_model_callbacks/after_model_callbacks_01/python_code.py"
+  }, {
+    "pythonCode": "agents/guardrail_agent/after_model_callbacks/after_model_callbacks_02/python_code.py"
+  }]
+}

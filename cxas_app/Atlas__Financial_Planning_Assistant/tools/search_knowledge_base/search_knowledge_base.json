@@ -1,0 +1,10 @@
+{
+  "name": "search_knowledge_base",
+  "pythonFunction": {
+    "name": "search_knowledge_base",
+    "pythonCode": "tools/search_knowledge_base/python_function/python_code.py",
+    "description": "Search the Northwind financial-education knowledge base for educational content.\n\nThe KB contains vetted content in both English and German. Query in the user\u0027s\nactive language to retrieve native-language content — no translation required.\n\nArgs:\n    user_query: The customer\u0027s conceptual or policy question, in the language\n        specified by the language parameter. Example: \"What is an emergency fund?\"\n        or \"Was ist ein Notfallfonds?\". (REQUIRED)\n    language: The language to query in. Must match active_language session variable.\n        Values: \u0027English\u0027 or \u0027German\u0027. Determines which KB content partition to query.\n        Default: \u0027English\u0027. (REQUIRED for German sessions)\n\nReturns:\n    dict with:\n        \u0027status\u0027 (str): \u0027success\u0027 or \u0027error\u0027.\n        \u0027result\u0027 (str): On success — educational content from the KB in the requested\n            language. Cite as Northwind knowledge base content.\n        \u0027source\u0027 (str): KB article title or identifier (for attribution).\n        \u0027agent_action\u0027 (str): Instruction for how to present the result.\n        \u0027error\u0027 (str): On error — description of what failed."
+  },
+  "executionType": "SYNCHRONOUS",
+  "displayName": "search_knowledge_base"
+}
