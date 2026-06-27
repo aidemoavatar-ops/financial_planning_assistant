@@ -52,6 +52,8 @@ def run_planning_calculation(
             'agent_action' (str): Exact instruction for how to present results as a
                 side-by-side comparison. The agent MUST follow this instruction verbatim
                 and MUST NOT add, remove, or modify any figures.
+            'richContent' (list): On success — the richContent array for
+                {@Widget: planning_widget}. Pass to the widget tool verbatim.
             'error' (str): On error — description of what failed.
     """
     auth_status = context.state.get("auth_status", "")
@@ -102,7 +104,8 @@ def run_planning_calculation(
                 f"Gap to close: EUR {gap:,.2f}. "
                 + (f"At EUR {available_cash:,.2f}/month, you would reach the target in {months_to_close} months. " if months_to_close else "")
                 + "Offer to discuss options for closing the gap. Do not recommend specific products. "
-                           )
+                + "Then call planning_widget with the richContent array from this response as the richContent argument — pass it verbatim, do not modify."
+            )
             rich_content = {
                 "richContent": [[
                     {
@@ -159,7 +162,7 @@ def run_planning_calculation(
                 + f" (delta: {abs(comparison_delta)*100:.1f}%). "
                 "Present both options neutrally. Do NOT recommend one over the other. "
                 "Offer to route to a licensed advisor for a recommendation. "
-                "Then call {@TOOL: customize_response} with the 'richContent' value from this tool response as the richContent argument."
+                "Then call planning_widget with the richContent array from this response as the richContent argument — pass it verbatim, do not modify."
             )
             rich_content = {
                 "richContent": [[
@@ -239,7 +242,8 @@ def run_planning_calculation(
                 f"current payment EUR {monthly_payment:,.2f}/month. "
                 + (f"Projected payoff: {int(months)} months ({int(months)//12} years {int(months)%12} months). " if months else "Current payment does not cover interest — increasing the payment is required. ")
                 + "Present as a factual projection. Do not recommend specific payment amounts. "
-                           )
+                + "Then call planning_widget with the richContent array from this response as the richContent argument — pass it verbatim, do not modify."
+            )
             rich_content = {
                 "richContent": [[
                     {
@@ -292,7 +296,7 @@ def run_planning_calculation(
                 f"{int(savings_pct*100)}% to savings (EUR {savings_amount:,.2f}). "
                 "This is an illustrative split based on the APR vs APY comparison — present it as one option, not a directive. "
                 "Do NOT say 'you should' or recommend this split. Offer to route to a licensed advisor for a personalized recommendation. "
-                "Then call {@TOOL: customize_response} with the 'richContent' value from this tool response as the richContent argument."
+                "Then call planning_widget with the richContent array from this response as the richContent argument — pass it verbatim, do not modify."
             )
             rich_content = {
                 "richContent": [[
@@ -336,16 +340,12 @@ def run_planning_calculation(
                 "agent_action": "Ask the customer what type of analysis they would like: emergency fund gap, debt versus investing comparison, payoff timeline, or allocation split."
             }
 
-        # Store widget in session state for deterministic callback injection.
-        # The widget_injector before_model_callback reads this and calls
-        # customize_response with the correct richContent — the LLM never touches it.
-        context.state["_pending_widget"] = json.dumps(rich_content["richContent"])
-
         return {
             "status": "success",
             "calculation_type": calculation_type,
             "results": results,
             "agent_action": action,
+            "richContent": rich_content["richContent"],
         }
 
     except Exception as e:
