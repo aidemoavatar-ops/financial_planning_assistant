@@ -109,15 +109,10 @@ def run_planning_calculation(
             rich_content = {
                 "richContent": [[
                     {
-                        "type": "table",
+                        "type": "info",
                         "title": "Emergency Fund Status",
-                        "columns": [{"header": "Item"}, {"header": "Amount (EUR)"}],
-                        "rows": [
-                            {"cells": [{"text": "Current savings"}, {"text": f"{savings_balance:,.2f}"}]},
-                            {"cells": [{"text": "3-month target"}, {"text": f"{target:,.2f}"}]},
-                            {"cells": [{"text": "Gap to close"}, {"text": f"{gap:,.2f}"}]}
-                        ],
-                        "dividers": True
+                        "subtitle": f"Gap to close: EUR {gap:,.2f}",
+                        "text": f"Current savings: EUR {savings_balance:,.2f}  |  3-month target: EUR {target:,.2f}"
                     },
                     {
                         "type": "chips",
@@ -167,26 +162,16 @@ def run_planning_calculation(
             rich_content = {
                 "richContent": [[
                     {
-                        "type": "table",
-                        "title": "Side-by-Side: Pay Off Debt vs. Invest",
-                        "columns": [
-                            {"header": "Option"},
-                            {"header": "Annual Return"},
-                            {"header": "Risk"}
-                        ],
-                        "rows": [
-                            {"cells": [
-                                {"text": f"A — Pay off {loan_id}"},
-                                {"text": f"{loan_apr*100:.1f}% (guaranteed)"},
-                                {"text": "None — saves certain interest cost"}
-                            ]},
-                            {"cells": [
-                                {"text": "B — Invest"},
-                                {"text": f"{investment_yield*100:.1f}% (projected)"},
-                                {"text": "Market risk — returns not guaranteed"}
-                            ]}
-                        ],
-                        "dividers": True
+                        "type": "info",
+                        "title": f"Option A — Pay off {loan_id}",
+                        "subtitle": f"{loan_apr*100:.1f}% guaranteed return",
+                        "text": "Risk: None — saves certain interest cost"
+                    },
+                    {
+                        "type": "info",
+                        "title": "Option B — Invest",
+                        "subtitle": f"{investment_yield*100:.1f}% projected yield",
+                        "text": "Risk: Market risk — returns not guaranteed"
                     },
                     {
                         "type": "chips",
@@ -301,26 +286,16 @@ def run_planning_calculation(
             rich_content = {
                 "richContent": [[
                     {
-                        "type": "table",
-                        "title": f"Proposed Allocation — EUR {available_cash:,.2f}",
-                        "columns": [
-                            {"header": "Destination"},
-                            {"header": "Amount (EUR)"},
-                            {"header": "Share"}
-                        ],
-                        "rows": [
-                            {"cells": [
-                                {"text": f"Debt reduction ({loan_id or 'highest-APR loan'})"},
-                                {"text": f"{debt_amount:,.2f}"},
-                                {"text": f"{int(debt_pct*100)}%"}
-                            ]},
-                            {"cells": [
-                                {"text": "Savings"},
-                                {"text": f"{savings_amount:,.2f}"},
-                                {"text": f"{int(savings_pct*100)}%"}
-                            ]}
-                        ],
-                        "dividers": True
+                        "type": "info",
+                        "title": f"Debt Reduction — {loan_id or 'highest-APR loan'}",
+                        "subtitle": f"EUR {debt_amount:,.2f}  ({int(debt_pct*100)}%)",
+                        "text": f"Of EUR {available_cash:,.2f} available cash"
+                    },
+                    {
+                        "type": "info",
+                        "title": "Savings",
+                        "subtitle": f"EUR {savings_amount:,.2f}  ({int(savings_pct*100)}%)",
+                        "text": f"Of EUR {available_cash:,.2f} available cash"
                     },
                     {
                         "type": "chips",
