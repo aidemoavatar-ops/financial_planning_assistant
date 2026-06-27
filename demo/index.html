@@ -1,0 +1,51 @@
+<html>
+
+<head>
+<script defer
+  src="https://www.gstatic.com/chat-messenger/sdk/prod/v1.16/chat-messenger.js">
+</script>
+<link rel="stylesheet" href="https://www.gstatic.com/chat-messenger/sdk/prod/v1.16/themes/chat-messenger-default.css">
+<link rel="stylesheet" href="https://www.gstatic.com/chat-messenger/sdk/prod/v1.16/themes/chat-messenger-layout.css">
+</head>
+
+<body>
+<script>
+    window.addEventListener("chat-messenger-loaded", () => {
+      chatSdk.registerContext(
+        chatSdk.prebuilts.ces.createContext({
+          deploymentName: "projects/361482590142/locations/eu/apps/e882a97d-e670-4e73-954e-11532b79f0cc/deployments/2540cba1-389a-47d4-9d9a-074c2a139973",
+          tokenBroker: {
+            enableTokenBroker: true,
+            enableRecaptcha: false
+          }
+        }),
+      );
+    });
+</script>
+<!-- Update the url-allowlist attribute with a comma-separated list of origins allowed to render images -->
+<chat-messenger
+  url-allowlist="*"
+>
+  <chat-messenger-container
+    chat-title="Financial Advisor"
+    chat-title-icon="https://gstatic.com/dialogflow-console/common/assets/ccai-favicons/conversational_agents.png"
+    enable-file-upload
+    enable-audio-input
+  >
+    <chat-reset-session-button
+      slot="titlebar-actions"
+      title-text="Start new chat"
+    ></chat-reset-session-button>
+    <chat-toggle-dialog-button
+      slot="titlebar-actions"
+      title-text-expanded="Collapse"
+      title-text-collapsed="Expand"
+    ></chat-toggle-dialog-button>
+    <chat-messenger-close-button
+      slot="titlebar-actions"
+      title-text="Close"
+    ></chat-messenger-close-button>
+  </chat-messenger-container>
+</chat-messenger>
+</body>
+</html>
