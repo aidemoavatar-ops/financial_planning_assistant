@@ -1,0 +1,48 @@
+name: Feature
+description: Request a product or engineering feature
+title: "[Feature]: "
+labels: ["feature", "ready"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What should be built?
+      placeholder: As a user, I want...
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem does this solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: What must be true for this to be complete?
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-goals
+      description: What is explicitly out of scope?
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Links, designs, constraints, or implementation notes
+    validations:
+      required: false
