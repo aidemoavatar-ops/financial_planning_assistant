@@ -14,6 +14,27 @@ Given a GitHub Issue number:
    - `proposal.md`
    - `tasks.md`
    - spec deltas (when behavior changes)
+
+   **Spec delta format** — required for `openspec archive` to update canonical specs automatically.
+   Each `specs/<capability>/spec.md` must use delta headers and scenario blocks:
+
+   ```markdown
+   ## ADDED Requirements
+
+   ### REQ-001: <requirement title>
+
+   <requirement description>
+
+   #### Scenario: <scenario name>
+
+   - Given ...
+   - When ...
+   - Then ...
+   ```
+
+   Valid delta headers: `## ADDED`, `## MODIFIED`, `## REMOVED`, `## RENAMED`.
+   Each requirement under a delta header needs at least one `#### Scenario:` block.
+   Without this format, `openspec archive` aborts and must be run with `--skip-specs`.
 5. Do not begin implementation until the proposal and tasks exist.
 6. Update `tasks.md` as work progresses.
 7. Keep changes focused on the issue scope.
