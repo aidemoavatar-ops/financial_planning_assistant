@@ -86,10 +86,54 @@ def retrieve_account_snapshot(customer_id: str) -> dict:
         import json
         context.state["account_snapshot"] = json.dumps(snapshot)
 
+        savings_rows = [
+            {"cells": [
+                {"text": acc["account_id"]},
+                {"text": f"EUR {acc['balance']:,.2f}"},
+                {"text": f"{acc['apy']*100:.2f}% APY"}
+            ]}
+            for acc in snapshot.get("savings_accounts", [])
+        ]
+        loan_rows = [
+            {"cells": [
+                {"text": acc["account_id"]},
+                {"text": f"EUR {acc['balance']:,.2f}"},
+                {"text": f"{acc['apr']*100:.2f}% APR"}
+            ]}
+            for acc in snapshot.get("loan_accounts", [])
+        ]
+        account_rows = (
+            [{"cells": [{"text": "Checking"}, {"text": f"EUR {snapshot['checking_balance']:,.2f}"}, {"text": "—"}]}]
+            + savings_rows
+            + loan_rows
+        )
+        rich_content = {
+            "richContent": [[
+                {
+                    "type": "table",
+                    "title": "Your Account Overview",
+                    "columns": [
+                        {"header": "Account"},
+                        {"header": "Balance"},
+                        {"header": "Rate"}
+                    ],
+                    "rows": account_rows,
+                    "dividers": True
+                }
+            ]]
+        }
+
+        # Store widget in session state for deterministic callback injection
+        context.state["_pending_widget"] = json.dumps(rich_content["richContent"])
+
         return {
             "status": "success",
             "snapshot": snapshot,
-            "agent_action": "Account snapshot retrieved successfully. Use these figures for any personalized planning calculations. Do not invent or estimate numbers — use only the values returned here."
+            "agent_action": (
+                "Account snapshot retrieved successfully. Use these figures for any personalized "
+                "planning calculations. Do not invent or estimate numbers — use only the values "
+                "returned here."
+            ),
         }
 
     except Exception as e:

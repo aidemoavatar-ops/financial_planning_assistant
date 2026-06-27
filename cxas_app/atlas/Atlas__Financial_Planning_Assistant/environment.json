@@ -2,7 +2,7 @@
   "app": {
     "loggingSettings": {
       "evaluationAudioRecordingConfig": {
-        "gcsBucket": "gs://atlas-financial-advisor-evals"
+        "gcsBucket": "gs://acn-atlas-financial-advisor-evals"
       }
     }
   }

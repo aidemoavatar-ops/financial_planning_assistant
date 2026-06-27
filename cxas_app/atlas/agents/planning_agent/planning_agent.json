@@ -9,9 +9,13 @@
         "generate_advisor_handoff_summary",
         "update_language",
         "set_session_state",
+        "customize_response",
         "end_session"
     ],
     "beforeModelCallbacks": [
         {"pythonCode": "agents/planning_agent/before_model_callbacks/before_model_callbacks_01/python_code.py"}
+    ],
+    "afterModelCallbacks": [
+        {"pythonCode": "agents/planning_agent/after_model_callbacks/after_model_callbacks_01/python_code.py"}
     ]
 }

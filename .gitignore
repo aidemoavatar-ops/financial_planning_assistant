@@ -53,3 +53,4 @@ token.json
 eval-reports/
 lint-report.json
 results.tsv
+gecx-config copy.json

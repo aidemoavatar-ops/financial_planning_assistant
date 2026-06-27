@@ -19,6 +19,14 @@ NORTHWIND_URLS = {
     "rate_disclosures": "https://www.northwindbank.example.com/legal/rate-disclosures",
 }
 
+TOPIC_BUTTON_LABELS = {
+    "savings_rates": "View Current Savings Rates",
+    "loan_rates": "View Current Loan Rates",
+    "advisor_scheduling": "Schedule a Meeting with an Advisor",
+    "product_overview": "Explore Northwind Products",
+    "rate_disclosures": "Read Rate Disclosures",
+}
+
 VALID_TOPICS = list(NORTHWIND_URLS.keys())
 
 
@@ -59,6 +67,15 @@ def get_northwind_resource_link(topic: str) -> dict:
             "agent_action": f"Inform the customer that the requested topic is not available. Offer one of: {', '.join(VALID_TOPICS)}."
         }
 
+    import json
+    context.state["_pending_widget"] = json.dumps([[
+        {
+            "type": "button",
+            "text": TOPIC_BUTTON_LABELS.get(topic, "View Official Resource"),
+            "link": url
+        }
+    ]])
+
     return {
         "status": "success",
         "topic": topic,
@@ -68,5 +85,5 @@ def get_northwind_resource_link(topic: str) -> dict:
             "Do NOT quote specific rates, terms, or figures from memory — "
             "the official page has the current and authoritative information. "
             "Tell the customer to visit the link for the most up-to-date details."
-        )
+        ),
     }
