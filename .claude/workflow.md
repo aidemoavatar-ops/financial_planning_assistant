@@ -8,7 +8,8 @@ Given a GitHub Issue number:
 
 1. Read the GitHub Issue completely.
 2. Create a feature branch: `feature/<issue-number>-<slug>`
-3. Create an OpenSpec change: `openspec/changes/<issue-number>-<slug>/`
+3. Create an OpenSpec change: `openspec/changes/issue-<issue-number>-<slug>/`
+   > Change names must start with a letter (`openspec status` rejects digit-leading names).
 4. Write or update:
    - `proposal.md`
    - `tasks.md`
