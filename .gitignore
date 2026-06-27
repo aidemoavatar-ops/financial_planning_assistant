@@ -48,6 +48,11 @@ token.json
 
 # Local/personal tool settings
 .claude/settings.local.json
+.claude/commands/
+.claude/skills/
+.claude/scheduled_tasks.lock
+.gemini/commands/
+.gemini/skills/
 
 # Runtime outputs
 eval-reports/
