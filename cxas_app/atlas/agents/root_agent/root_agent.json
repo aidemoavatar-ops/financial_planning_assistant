@@ -8,7 +8,6 @@
         "update_language",
         "set_session_state",
         "verify_pin",
-        "customize_response",
         "end_session"
     ],
     "childAgents": [

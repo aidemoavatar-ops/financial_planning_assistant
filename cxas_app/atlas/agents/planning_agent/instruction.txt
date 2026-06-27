@@ -76,8 +76,17 @@
             </action>
         </step>
 
+        <step name="Show_Widget">
+            <trigger>run_planning_calculation returns status: "success".</trigger>
+            <action>
+                Immediately call {@TOOL: planning_widget} with the richContent array
+                from the run_planning_calculation response as the richContent argument.
+                Pass it VERBATIM — do not modify, summarize, or reorder its contents.
+            </action>
+        </step>
+
         <step name="Present_Comparison">
-            <trigger>Calculation tool has returned results.</trigger>
+            <trigger>Widget has been sent (Show_Widget step complete).</trigger>
             <action>
                 Present the results as a side-by-side comparison following the agent_action
                 from the tool response. Offer the customer the choice between options.

@@ -52,6 +52,8 @@ def run_planning_calculation(
             'agent_action' (str): Exact instruction for how to present results as a
                 side-by-side comparison. The agent MUST follow this instruction verbatim
                 and MUST NOT add, remove, or modify any figures.
+            'richContent' (list): On success — the richContent array for
+                {@Widget: planning_widget}. Pass to the widget tool verbatim.
             'error' (str): On error — description of what failed.
     """
     auth_status = context.state.get("auth_status", "")
@@ -102,19 +104,15 @@ def run_planning_calculation(
                 f"Gap to close: EUR {gap:,.2f}. "
                 + (f"At EUR {available_cash:,.2f}/month, you would reach the target in {months_to_close} months. " if months_to_close else "")
                 + "Offer to discuss options for closing the gap. Do not recommend specific products. "
-                           )
+                + "Then call planning_widget with the richContent array from this response as the richContent argument — pass it verbatim, do not modify."
+            )
             rich_content = {
                 "richContent": [[
                     {
-                        "type": "table",
+                        "type": "info",
                         "title": "Emergency Fund Status",
-                        "columns": [{"header": "Item"}, {"header": "Amount (EUR)"}],
-                        "rows": [
-                            {"cells": [{"text": "Current savings"}, {"text": f"{savings_balance:,.2f}"}]},
-                            {"cells": [{"text": "3-month target"}, {"text": f"{target:,.2f}"}]},
-                            {"cells": [{"text": "Gap to close"}, {"text": f"{gap:,.2f}"}]}
-                        ],
-                        "dividers": True
+                        "subtitle": f"Gap to close: EUR {gap:,.2f}",
+                        "text": f"Current savings: EUR {savings_balance:,.2f}  |  3-month target: EUR {target:,.2f}"
                     },
                     {
                         "type": "chips",
@@ -159,31 +157,21 @@ def run_planning_calculation(
                 + f" (delta: {abs(comparison_delta)*100:.1f}%). "
                 "Present both options neutrally. Do NOT recommend one over the other. "
                 "Offer to route to a licensed advisor for a recommendation. "
-                "Then call {@TOOL: customize_response} with the 'richContent' value from this tool response as the richContent argument."
+                "Then call planning_widget with the richContent array from this response as the richContent argument — pass it verbatim, do not modify."
             )
             rich_content = {
                 "richContent": [[
                     {
-                        "type": "table",
-                        "title": "Side-by-Side: Pay Off Debt vs. Invest",
-                        "columns": [
-                            {"header": "Option"},
-                            {"header": "Annual Return"},
-                            {"header": "Risk"}
-                        ],
-                        "rows": [
-                            {"cells": [
-                                {"text": f"A — Pay off {loan_id}"},
-                                {"text": f"{loan_apr*100:.1f}% (guaranteed)"},
-                                {"text": "None — saves certain interest cost"}
-                            ]},
-                            {"cells": [
-                                {"text": "B — Invest"},
-                                {"text": f"{investment_yield*100:.1f}% (projected)"},
-                                {"text": "Market risk — returns not guaranteed"}
-                            ]}
-                        ],
-                        "dividers": True
+                        "type": "info",
+                        "title": f"Option A — Pay off {loan_id}",
+                        "subtitle": f"{loan_apr*100:.1f}% guaranteed return",
+                        "text": "Risk: None — saves certain interest cost"
+                    },
+                    {
+                        "type": "info",
+                        "title": "Option B — Invest",
+                        "subtitle": f"{investment_yield*100:.1f}% projected yield",
+                        "text": "Risk: Market risk — returns not guaranteed"
                     },
                     {
                         "type": "chips",
@@ -239,7 +227,8 @@ def run_planning_calculation(
                 f"current payment EUR {monthly_payment:,.2f}/month. "
                 + (f"Projected payoff: {int(months)} months ({int(months)//12} years {int(months)%12} months). " if months else "Current payment does not cover interest — increasing the payment is required. ")
                 + "Present as a factual projection. Do not recommend specific payment amounts. "
-                           )
+                + "Then call planning_widget with the richContent array from this response as the richContent argument — pass it verbatim, do not modify."
+            )
             rich_content = {
                 "richContent": [[
                     {
@@ -268,7 +257,7 @@ def run_planning_calculation(
             loan_apr = highest_apr_loan.get("apr", 0)
             loan_id = highest_apr_loan.get("account_id", "")
 
-            # Simple split: if loan APR > savings APY, weight toward debt
+            # Split ratios: weight toward whichever rate is higher
             if loan_apr > savings_apy and loans:
                 debt_pct = 0.70
                 savings_pct = 0.30
@@ -279,50 +268,74 @@ def run_planning_calculation(
             debt_amount = round(available_cash * debt_pct, 2)
             savings_amount = round(available_cash * savings_pct, 2)
 
+            # 1-year monetary benefit for all 3 scenarios
+            benefit_all_loan = round(available_cash * loan_apr, 2)
+            benefit_all_savings = round(available_cash * savings_apy, 2)
+            benefit_split = round(debt_amount * loan_apr + savings_amount * savings_apy, 2)
+
+            best = max(
+                [("A", benefit_all_loan), ("B", benefit_all_savings), ("C", benefit_split)],
+                key=lambda x: x[1]
+            )
+
+            # Unicode bar chart scaled to 15 chars
+            max_b = max(benefit_all_loan, benefit_all_savings, benefit_split)
+            def _bar(v, width=15):
+                filled = round(v / max_b * width) if max_b else 0
+                return "█" * filled + "░" * (width - filled)
+
             results = {
                 "available_cash_eur": available_cash,
-                "proposed_debt_payment_eur": debt_amount,
-                "proposed_savings_eur": savings_amount,
-                "debt_percentage": debt_pct,
-                "savings_percentage": savings_pct
+                "loan_apr": loan_apr,
+                "savings_apy": savings_apy,
+                "scenario_all_loan": {"amount_eur": available_cash, "benefit_1yr_eur": benefit_all_loan},
+                "scenario_all_savings": {"amount_eur": available_cash, "benefit_1yr_eur": benefit_all_savings},
+                "scenario_split": {
+                    "debt_eur": debt_amount,
+                    "savings_eur": savings_amount,
+                    "benefit_1yr_eur": benefit_split,
+                    "debt_pct": debt_pct,
+                    "savings_pct": savings_pct,
+                },
+                "highest_return_scenario": best[0],
             }
+            best_label = {"A": "Option A", "B": "Option B", "C": "Option C"}[best[0]]
             action = (
-                f"Present this as a proposed allocation of EUR {available_cash:,.2f}: "
-                f"Option — {int(debt_pct*100)}% to debt (EUR {debt_amount:,.2f} toward {loan_id or 'highest-APR loan'}), "
-                f"{int(savings_pct*100)}% to savings (EUR {savings_amount:,.2f}). "
-                "This is an illustrative split based on the APR vs APY comparison — present it as one option, not a directive. "
-                "Do NOT say 'you should' or recommend this split. Offer to route to a licensed advisor for a personalized recommendation. "
-                "Then call {@TOOL: customize_response} with the 'richContent' value from this tool response as the richContent argument."
+                f"Present 3 scenarios for EUR {available_cash:,.2f}: "
+                f"A) All to loan ({loan_id or 'highest-APR loan'}): EUR {benefit_all_loan:,.2f} benefit in year 1 at {loan_apr*100:.1f}% APR. "
+                f"B) All to savings: EUR {benefit_all_savings:,.2f} benefit in year 1 at {savings_apy*100:.1f}% APY. "
+                f"C) {int(debt_pct*100)}/{int(savings_pct*100)} split: EUR {benefit_split:,.2f} benefit in year 1. "
+                f"State factually that {best_label} yields the highest mathematical return over one year. "
+                "Note that Option C preserves liquidity in accessible savings. "
+                "Do NOT say 'you should' or direct the customer toward any option. "
+                "Offer to route to a licensed advisor for a personalized recommendation. "
+                "Then call planning_widget with the richContent array from this response as the richContent argument — pass it verbatim, do not modify."
             )
             rich_content = {
                 "richContent": [[
                     {
-                        "type": "table",
-                        "title": f"Proposed Allocation — EUR {available_cash:,.2f}",
-                        "columns": [
-                            {"header": "Destination"},
-                            {"header": "Amount (EUR)"},
-                            {"header": "Share"}
-                        ],
-                        "rows": [
-                            {"cells": [
-                                {"text": f"Debt reduction ({loan_id or 'highest-APR loan'})"},
-                                {"text": f"{debt_amount:,.2f}"},
-                                {"text": f"{int(debt_pct*100)}%"}
-                            ]},
-                            {"cells": [
-                                {"text": "Savings"},
-                                {"text": f"{savings_amount:,.2f}"},
-                                {"text": f"{int(savings_pct*100)}%"}
-                            ]}
-                        ],
-                        "dividers": True
+                        "type": "info",
+                        "title": f"A — All to Loan ({loan_id or 'highest-APR loan'})" + ("  ★ highest return" if best[0] == "A" else ""),
+                        "subtitle": f"EUR {benefit_all_loan:,.2f} / year",
+                        "text": f"{_bar(benefit_all_loan)}  {loan_apr*100:.1f}% APR on EUR {available_cash:,.2f}"
+                    },
+                    {
+                        "type": "info",
+                        "title": "B — All to Savings" + ("  ★ highest return" if best[0] == "B" else ""),
+                        "subtitle": f"EUR {benefit_all_savings:,.2f} / year",
+                        "text": f"{_bar(benefit_all_savings)}  {savings_apy*100:.1f}% APY on EUR {available_cash:,.2f}"
+                    },
+                    {
+                        "type": "info",
+                        "title": f"C — {int(debt_pct*100)}% Loan / {int(savings_pct*100)}% Savings" + ("  ★ highest return" if best[0] == "C" else ""),
+                        "subtitle": f"EUR {benefit_split:,.2f} / year",
+                        "text": f"{_bar(benefit_split)}  Balanced — preserves liquidity"
                     },
                     {
                         "type": "chips",
                         "options": [
-                            {"text": "Adjust the split"},
-                            {"text": "Explain the reasoning"},
+                            {"text": f"Tell me more about Option {best[0]}"},
+                            {"text": "Show full comparison"},
                             {"text": "Talk to a licensed advisor"}
                         ]
                     }
@@ -336,16 +349,12 @@ def run_planning_calculation(
                 "agent_action": "Ask the customer what type of analysis they would like: emergency fund gap, debt versus investing comparison, payoff timeline, or allocation split."
             }
 
-        # Store widget in session state for deterministic callback injection.
-        # The widget_injector before_model_callback reads this and calls
-        # customize_response with the correct richContent — the LLM never touches it.
-        context.state["_pending_widget"] = json.dumps(rich_content["richContent"])
-
         return {
             "status": "success",
             "calculation_type": calculation_type,
             "results": results,
             "agent_action": action,
+            "richContent": rich_content["richContent"],
         }
 
     except Exception as e:

@@ -106,11 +106,6 @@
             "name": "_silence_count",
             "description": "Internal counter tracking consecutive silence events from the voice channel. Tracked by silence_handler before_model_callback on root_agent. Resets to 0 when user speaks. After 3 consecutive silences, end_session is called. Underscore prefix marks this as internal — NEVER override in evals.",
             "schema": {"type": "STRING", "default": "0"}
-        },
-        {
-            "name": "_pending_widget",
-            "description": "JSON-encoded richContent array set by widget-enabled tools (run_planning_calculation, retrieve_account_snapshot, get_northwind_resource_link) after a successful call. Read and cleared by the widget_injector after_model_callback, which appends customize_response to the LLM's verbal response so the customer hears the explanation and sees the widget in the same turn. Underscore prefix marks this as internal — NEVER override in evals.",
-            "schema": {"type": "STRING", "default": ""}
         }
     ]
 }

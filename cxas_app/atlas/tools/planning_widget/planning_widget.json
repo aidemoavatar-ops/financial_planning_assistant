@@ -1,0 +1,24 @@
+{
+    "name": "planning_widget",
+    "displayName": "planning_widget",
+    "widgetTool": {
+        "name": "planning_widget",
+        "description": "Renders a rich content widget in the chat UI after a planning calculation. Call this immediately after run_planning_calculation succeeds, passing the richContent array from the tool response verbatim — do not modify its contents.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "richContent": {
+                    "type": "ARRAY",
+                    "description": "The richContent array from run_planning_calculation's response. Pass verbatim — do not modify.",
+                    "items": {
+                        "type": "ARRAY",
+                        "items": {
+                            "type": "OBJECT"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "executionType": "SYNCHRONOUS"
+}
