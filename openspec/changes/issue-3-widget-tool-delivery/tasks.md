@@ -39,5 +39,5 @@
 
 ## 8. Pull Request
 
-- [ ] 8.1 Commit all changes with message referencing issue #3
-- [ ] 8.2 Open PR with `Closes #3` and OpenSpec change path `openspec/changes/issue-3-widget-tool-delivery/`
+- [x] 8.1 Commit all changes with message referencing issue #3
+- [x] 8.2 Open PR with `Closes #3` and OpenSpec change path `openspec/changes/issue-3-widget-tool-delivery/`
